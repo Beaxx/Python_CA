@@ -24,6 +24,7 @@ class Program:
                 else:
                     self.cells[row].append(self.generate_cell(0))
 
+    # TODO Weitere draw optionen für weitere cell-attribute
     def draw(self):
         for row in range(0, self.grid_height):
             for col in range(0, self.grid_width):
@@ -38,6 +39,7 @@ class Program:
                                                  ("v2i", square_coords))
 
     # Game of Life rules in Moore-Environment
+    # TODO Regeln auslagern
     def run_rules(self):
         temp_grid = []
         for row in range(0, self.grid_height):
