@@ -18,17 +18,21 @@ def main():
     initial_append_vector = [0.4, [1, 0.4, 0.1]]
 
     # Initialize Window
-    window = GraphWin("PY-CA", window_width, window_height)
+    window = GraphWin("PY-CA", window_width, window_height, autoflush=False)
 
     # Initialize automat with propability vector
     automat = CellAutomata(window_width, window_height, cell_size, initial_append_vector)
 
-    # Draw Grid Initial
-    GU.draw_grid(window, automat.cells, cell_size)
-
     window.getMouse()
 
-    # while True:
-    #     automat.run_rules()
+    while True:
+        rec = Rectangle(Point(0, 0), Point(window_width, window_height))
+        rec.setFill("white")
+        rec.draw(window)
+
+        GU.draw_grid(window, automat.cells, cell_size)
+        automat.run_rules()
+
+        window.getMouse()
 
 main()

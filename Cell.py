@@ -4,4 +4,4 @@
 class Cell:
     def __init__(self, vector):
         self.state_person = vector[0]
-        self.state_wealth = vector[1]
+        self.state_wealth = vector[1] # TODO: Konstruktur muss zufallsvertelung für Wealth aufnehmen
