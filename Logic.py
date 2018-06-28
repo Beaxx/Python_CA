@@ -1,6 +1,7 @@
 from Cell import *
 import random as rnd
 
+
 class CellAutomata:
     def __init__(self, window_width, window_height, cell_size, initial_prop_vector):
         self.grid_width = int(window_width / cell_size)
@@ -35,15 +36,6 @@ class CellAutomata:
             self.cells.append([])
             for col in range(0, self.grid_width):
                 self.cells[row].append(self.generate_cell(prop_vector))
-
-    # TODO Weitere draw optionen für weitere cell-attribute
-    # With cell_cize == 10
-                    # (0, 0) (0, 10) (10, 0) (10, 10)
-                    # square_coords = (row * self.cell_size,                  col * self.cell_size,
-                    #                  row * self.cell_size,                  col * self.cell_size + self.cell_size,
-                    #                  row * self.cell_size + self.cell_size, col * self.cell_size,
-                    #                  row * self.cell_size + self.cell_size, col * self.cell_size + self.cell_size)
-
 
     # Game of Life rules in Moore-Environment
     # TODO Regeln auslagern

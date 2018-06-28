@@ -24,7 +24,7 @@ def main():
     automat = CellAutomata(window_width, window_height, cell_size, initial_append_vector)
 
     # Draw Grid Initial
-    GU.draw_grid(automat.cells, window, cell_size)
+    GU.draw_grid(window, automat.cells, cell_size)
 
     window.getMouse()
 
