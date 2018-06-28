@@ -37,36 +37,12 @@ class CellAutomata:
                 self.cells[row].append(self.generate_cell(prop_vector))
 
     # TODO Weitere draw optionen für weitere cell-attribute
-    def draw(self):
-        for row in range(0, self.grid_height):
-            for col in range(0, self.grid_width):
-                if self.cells[row][col].state[0] == 1:
-                    # With cell_cize == 10
+    # With cell_cize == 10
                     # (0, 0) (0, 10) (10, 0) (10, 10)
-                    square_coords = (row * self.cell_size,                  col * self.cell_size,
-                                     row * self.cell_size,                  col * self.cell_size + self.cell_size,
-                                     row * self.cell_size + self.cell_size, col * self.cell_size,
-                                     row * self.cell_size + self.cell_size, col * self.cell_size + self.cell_size)
-
-                    pyglet.graphics.draw_indexed(4, pyglet.gl.GL_TRIANGLES,
-                                                 [0, 1, 2, 1, 2, 3],
-                                                 ("v2i", square_coords))
-                #     pyglet.text.Label("1",
-                #                       font_name="Arial",
-                #                       font_size=8,
-                #                       x=col+self.cell_size/2,
-                #                       y=row+self.cell_size/2,
-                #                       anchor_x="center",
-                #                       anchor_y="center")
-                # else:
-                #     pyglet.text.Label("1",
-                #                       font_name="Arial",
-                #                       font_size=8,
-                #                       color=(255, 255, 255, 255),
-                #                       x=col + self.cell_size / 2,
-                #                       y=row + self.cell_size / 2,
-                #                       anchor_x="center",
-                #                       anchor_y="center")
+                    # square_coords = (row * self.cell_size,                  col * self.cell_size,
+                    #                  row * self.cell_size,                  col * self.cell_size + self.cell_size,
+                    #                  row * self.cell_size + self.cell_size, col * self.cell_size,
+                    #                  row * self.cell_size + self.cell_size, col * self.cell_size + self.cell_size)
 
 
     # Game of Life rules in Moore-Environment
