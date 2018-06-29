@@ -44,13 +44,13 @@ class CellAutomata:
                 environment = self.add_up_environment(row, col)
 
                 # Game of Life Rule Set
-                # if self.cells[row][col].state_person == 0 and cell_sum == 3:
-                #     temp_grid[row].append(Cell([1, 0]))
-                #
-                # elif self.cells[row][col].state_person == 1 and (cell_sum == 3 or cell_sum == 2):
-                #     temp_grid[row].append(Cell([1, 0]))
-                # else:
-                #     temp_grid[row].append(Cell([0, 0]))
+                if self.cells[row][col].state_person == 0 and environment[0] == 3:
+                    temp_grid[row].append(Cell([1, 0]))
+
+                elif self.cells[row][col].state_person == 1 and (environment[0] == 3 or environment[0] == 2):
+                    temp_grid[row].append(Cell([1, 0]))
+                else:
+                    temp_grid[row].append(Cell([0, 0]))
 
         self.cells = temp_grid
 
@@ -58,8 +58,8 @@ class CellAutomata:
     def select_cells(self, row, col):
 
         # Normal
-        if (0 < row < self.grid_height) and (0 < col < self.grid_width):
-            return[[row - 1, col],[row - 1, col - 1], [row, col - 1], [row + 1, col - 1], [row + 1, col],
+        if (0 < row < self.grid_height-1) and (0 < col < self.grid_width-1):
+            return[[row - 1, col], [row - 1, col - 1], [row, col - 1], [row + 1, col - 1], [row + 1, col],
                    [row + 1, col + 1], [row, col + 1], [row - 1, col + 1]]
 
         # Top Left Corner
@@ -69,37 +69,37 @@ class CellAutomata:
                     [self.grid_height-1, col + 1]]
 
         # Top Border
-        elif 0 == row and 0 < col < self.grid_width:
-            return [[self.grid_height, col], [self.grid_height, col-1], [row, col - 1], [row + 1, col - 1],
-                    [row + 1, col], [row + 1, col + 1], [row, col + 1], [self.grid_height, col + 1]]
+        elif 0 == row and (0 < col < self.grid_width-1):
+            return [[self.grid_height-1, col], [self.grid_height-1, col-1], [row, col - 1], [row + 1, col - 1],
+                    [row + 1, col], [row + 1, col + 1], [row, col + 1], [self.grid_height-1, col + 1]]
 
         # Top Right Corner
-        elif 0 == row and col == self.grid_width:
-            return [[self.grid_height, col], [self.grid_height, col - 1], [row, col - 1], [row + 1, col - 1],
-                    [row + 1, col], [row + 1, 0], [row, 0], [self.grid_height, 0]]
+        elif 0 == row and col == self.grid_width-1:
+            return [[self.grid_height-1, col], [self.grid_height-1, col - 1], [row, col - 1], [row + 1, col - 1],
+                    [row + 1, col], [row + 1, 0], [row, 0], [self.grid_height-1, 0]]
 
         # Left Border
-        elif (0 < row < self.grid_height) and 0 == col:
-            return [[row - 1, col], [row - 1, self.grid_width], [row, self.grid_width], [row + 1, self.grid_width],
+        elif (0 < row < self.grid_height-1) and 0 == col:
+            return [[row - 1, col], [row - 1, self.grid_width-1], [row, self.grid_width-1], [row + 1, self.grid_width-1],
                     [row + 1, col], [row + 1, col + 1], [row, col + 1], [row - 1, col + 1]]
 
         # Right Border
-        elif (0 < row < self.grid_height) and 0 == self.grid_width:
+        elif (0 < row < self.grid_height-1) and col == self.grid_width-1:
             return [[row - 1, col], [row - 1, col - 1], [row, col - 1], [row + 1, col - 1], [row + 1, col],
                     [row + 1, 0], [row, 0], [row - 1, 0]]
 
         # Bottom Left Corner
-        elif self.grid_height == row and 0 == col:
-            return [[row - 1, col], [row - 1, self.grid_width], [row, self.grid_width], [0, self.grid_width],
+        elif self.grid_height-1 == row and 0 == col:
+            return [[row - 1, col], [row - 1, self.grid_width-1], [row, self.grid_width-1], [0, self.grid_width-1],
                     [0, col], [0, col + 1], [row, col + 1], [row - 1, col + 1]]
 
         # Bottom Border
-        elif self.grid_height == row and 0 < col < self.grid_width:
+        elif (self.grid_height-1 == row) and (0 < col < self.grid_width-1):
             return [[row - 1, col], [row - 1, col - 1], [row, col - 1], [0, col - 1], [0, col], [0, col + 1],
                     [row, col + 1], [row - 1, col + 1]]
 
         # Bottom Right Corner
-        elif self.grid_height == row and self.grid_width == col:
+        elif (self.grid_height-1 == row) and (self.grid_width-1 == col):
             return [[row - 1, col], [row - 1, col - 1], [row, col - 1], [0, col - 1], [0, col], [0, 0],
                     [row, 0], [row - 1, 0]]
 
@@ -112,4 +112,10 @@ class CellAutomata:
             person += self.cells[environment[i][0]][environment[i][1]].state_person
             if self.cells[environment[i][0]][environment[i][1]].state_person == 1:
                 wealth += self.cells[environment[i][0]][environment[i][1]].state_wealth
-        return [person, wealth, int(wealth/person)]
+
+        if person == 0:
+            wealth_pp = 0
+        else:
+            wealth_pp = int(wealth / person)
+
+        return [person, wealth, wealth_pp]
