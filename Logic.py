@@ -29,31 +29,44 @@ class CellAutomata:
             for col in range(0, self.grid_width):
                 environment = self.add_up_environment(row, col)
 
-                if self.cells[row][col].state_person == 1:
-                    indication_wealth = self.wealth_rule(row, col, environment)
-                    # indication_culture = self.culture_rule()
-                    # indication_age = self.age_rule()
+                indication = 0
+                indication = self.wealth_rule(row, col, environment, indication)
+                if indication is Cell:
+                    temp_grid[row].append(indication)
+                    return
 
-                # Game of Life Rule Set
-                if self.cells[row][col].state_person == 0 and environment[0] == 3:
-                    temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
-
-                elif self.cells[row][col].state_person == 1 and (environment[0] == 3 or environment[0] == 2):
-                    temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
-                else:
+                # indication = self.culture_rule(self, indication)
+                # TODO Funktionierenden Loop erzeugen
+                if indication is int and indication < 0:
                     temp_grid[row].append(Cell(person=0, wealth=self.cells[row][col].state_wealth))
+                elif indication is int and indication >= 0:
+                    temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
+
+                else:
+                    temp_grid[row].append(self.cells[row][col])
+
+                # TODO Vergünstigung des Wohnraumes
+
+                # # Game of Life Rule Set
+                # if self.cells[row][col].state_person == 0 and environment[0] == 3:
+                #     temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
+                # elif self.cells[row][col].state_person == 1 and (environment[0] == 3 or environment[0] == 2):
+                #     temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
+                # else:
+                #     temp_grid[row].append(Cell(person=0, wealth=self.cells[row][col].state_wealth))
         self.cells = temp_grid
 
-    def wealth_rule(self, row, col, environment):
+    def wealth_rule(self, row, col, environment, indication):
         """
         - PRIO 1 -
         Wenn der durchschnittliche Wealth um eine Person über 50% über dem eigenen Wealth liegt sucht die Person in
         ihrer Moore Umgebung eine Freie Fläche, deren Kosten gleich oder unter ihrem wealth sind.
         Ist keine solche Fläche verfügbar, stirbt die zelle und hinterlässt wohngrund mit Ihrem Wealth als Kosten
         """
-        if self.cells[row][col].state_wealth * 1.5 <= environment[2]:
-            surrounding_coords = self.select_cells(row, col)
-            indication = 0
+        surrounding_coords = self.select_cells(row, col)
+
+        # Person is 1.5x poorer then surrounding Persons --> Person is forced to move
+        if self.cells[row][col].state_person == 1 and (self.cells[row][col].state_wealth * 1.5 <= environment[3]):
             for i, cell_coord in enumerate(surrounding_coords):
                 if self.cells[cell_coord[0]][cell_coord[1]].state_person == 0 and \
                    self.cells[cell_coord[0]][cell_coord[1]].state_wealth <= self.cells[row][col].state_wealth:
@@ -61,6 +74,10 @@ class CellAutomata:
                 else:
                     indication += 1
             return indication
+
+        # Free space 1.5x cheaper then environment (freee + inhabited) --> price increases
+        elif self.cells[row][col].state_person == 0 and (self.cells[row][col].state_wealth * 1.5 <= environment[2] / 8):
+            return Cell(person=0, wealth=self.cells[row][col].state_wealth+1)
 
     def culture_rule(self):
         """
@@ -129,17 +146,19 @@ class CellAutomata:
 
     def add_up_environment(self, row, col):
         person = 0
-        wealth = 0
+        wealth_p = 0
+        wealth_t = 0
         environment = self.select_cells(row, col)
 
         for i, element in enumerate(environment):
             person += self.cells[environment[i][0]][environment[i][1]].state_person
+            wealth_t += self.cells[environment[i][0]][environment[i][1]].state_wealth
             if self.cells[environment[i][0]][environment[i][1]].state_person == 1:
-                wealth += self.cells[environment[i][0]][environment[i][1]].state_wealth
+                wealth_p += self.cells[environment[i][0]][environment[i][1]].state_wealth
 
         if person == 0:
             wealth_pp = 0
         else:
-            wealth_pp = wealth / person
+            wealth_pp = wealth_p / person
 
-        return [person, wealth, wealth_pp]
+        return [person, wealth_p, wealth_t, wealth_pp]
