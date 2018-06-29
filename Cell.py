@@ -5,7 +5,8 @@ import random as rnd
 '''Propabilities'''
 prop_person = 0.4
 prop_wealth = [1, 0.4, 0.1]
-
+state_person = 0
+state_wealth = 0
 
 class Cell:
     def __init__(self, **kwargs):

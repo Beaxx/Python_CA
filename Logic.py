@@ -1,8 +1,8 @@
 from Cell import *
 
-'''
+"""
 CellAutomata hosts the rules and therefore the logic of the CA-Algorithm.
-'''
+"""
 
 class CellAutomata:
     def __init__(self, window_width, window_height, cell_size):
@@ -29,6 +29,11 @@ class CellAutomata:
             for col in range(0, self.grid_width):
                 environment = self.add_up_environment(row, col)
 
+                if self.cells[row][col].state_person == 1:
+                    indication_wealth = self.wealth_rule(row, col, environment)
+                    # indication_culture = self.culture_rule()
+                    # indication_age = self.age_rule()
+
                 # Game of Life Rule Set
                 if self.cells[row][col].state_person == 0 and environment[0] == 3:
                     temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
@@ -37,8 +42,41 @@ class CellAutomata:
                     temp_grid[row].append(Cell(person=1, wealth=self.cells[row][col].state_wealth))
                 else:
                     temp_grid[row].append(Cell(person=0, wealth=self.cells[row][col].state_wealth))
-
         self.cells = temp_grid
+
+    def wealth_rule(self, row, col, environment):
+        """
+        - PRIO 1 -
+        Wenn der durchschnittliche Wealth um eine Person über 50% über dem eigenen Wealth liegt sucht die Person in
+        ihrer Moore Umgebung eine Freie Fläche, deren Kosten gleich oder unter ihrem wealth sind.
+        Ist keine solche Fläche verfügbar, stirbt die zelle und hinterlässt wohngrund mit Ihrem Wealth als Kosten
+        """
+        if self.cells[row][col].state_wealth * 1.5 <= environment[2]:
+            surrounding_coords = self.select_cells(row, col)
+            indication = 0
+            for i, cell_coord in enumerate(surrounding_coords):
+                if self.cells[cell_coord[0]][cell_coord[1]].state_person == 0 and \
+                   self.cells[cell_coord[0]][cell_coord[1]].state_wealth <= self.cells[row][col].state_wealth:
+                    indication -= 1
+                else:
+                    indication += 1
+            return indication
+
+    def culture_rule(self):
+        """
+        - Prio 2 -
+        > Religion und Kultur zu nah beieinander<
+        Zellen vermeiden den direkten Kontakt zu anderen Kulturen
+            (Westlich, Slawisch, Islamisch, Sinisch, Afrikanisch, Hinduistisch)
+        :return:
+        """
+
+    def age_rule(self):
+        """
+        - Prio 3 -
+        Rentnerviertel
+        :return:
+        """
 
     # Moore Environment - Sphere
     def select_cells(self, row, col):
@@ -102,6 +140,6 @@ class CellAutomata:
         if person == 0:
             wealth_pp = 0
         else:
-            wealth_pp = int(wealth / person)
+            wealth_pp = wealth / person
 
         return [person, wealth, wealth_pp]
