@@ -16,7 +16,6 @@ class GraphicsUnit:
         for cell in drawn_elements:
             for element in cell:
                 element.undraw()
-        drawn_elements.remove(cell)
 
     @staticmethod
     def draw_cell(window, x_up_left, y_up_left, cell_size, cell):
@@ -65,4 +64,5 @@ class GraphicsUnit:
         for i in txt_list:
             i.draw(window)
             cell_graphic.append(i)
+
         return cell_graphic
