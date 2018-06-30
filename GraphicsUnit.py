@@ -8,7 +8,8 @@ class GraphicsUnit:
         draw_on_screen = []
         for row in range(0, len(cells)):
             for col in range(0, len(cells[0])):
-                draw_on_screen.append(GraphicsUnit.draw_cell(window, col * cell_size, row * cell_size, cell_size, cells[row][col]))
+                draw_on_screen.append(GraphicsUnit.draw_cell(window, col * cell_size, row * cell_size, cell_size,
+                                                             cells[row][col]))
         return draw_on_screen
 
     @staticmethod
@@ -25,8 +26,8 @@ class GraphicsUnit:
         cell_graphic = []
         if cell.state_person == 1:
             square = Rectangle(p1, p2)
-            square.setFill("black")
-            square.setOutline("white")
+            square.setFill(color_rgb(20, 20, 20))
+            square.setOutline(color_rgb(255, 0, 144))
             square.setWidth(1)
 
             # Human specific Data
@@ -46,16 +47,14 @@ class GraphicsUnit:
             txt4.setTextColor("green")
 
         else:
-            square = Rectangle(p1, p2)
-            square.setFill("white")
-            square.setOutline("black")
-            square.setWidth(1)
+            square_empty = Rectangle(p1, p2)
 
-            # Space cost instead of persons welath
+            # Space cost instead of persons wealth
             txt1 = Text(Point((p1.getX() + cell_size / 2), (p1.getY() + cell_size / 2)), cell.state_wealth)
+            txt1.setSize(int(round(cell_size / 2.5)))
             txt1.draw(window)
 
-            cell_graphic.append(square)
+            cell_graphic.append(square_empty)
             cell_graphic.append(txt1)
             return cell_graphic
 

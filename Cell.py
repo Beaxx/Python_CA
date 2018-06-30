@@ -3,7 +3,7 @@
 import random as rnd
 
 '''Propabilities'''
-prop_person = 0.4
+prop_person = 0.2
 prop_wealth = [1, 0.4, 0.1]
 state_person = 0
 state_wealth = 0
