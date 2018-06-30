@@ -7,7 +7,7 @@ def main():
     window_width = 750
     window_height = 750
     cell_size = 25
-    weights = [3, 2, 1]  # Weights the different Rule-compsed temp grids to compose the next iteration grid
+    weights = [3]  # Weights the different Rule-compsed temp grids to compose the next iteration grid
 
     # Initialize Window
     window = GraphWin("PY-CA", window_width, window_height, autoflush=False)

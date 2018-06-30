@@ -32,7 +32,7 @@ class GraphicsUnit:
 
             # Human specific Data
             txt1 = Text(Point((p1.getX() + cell_size / 5), (p1.getY() + cell_size / 5)), cell.state_wealth)
-            txt2 = Text(Point((p1.getX() + 4 * cell_size / 5), (p1.getY() + cell_size / 5)), "x")
+            txt2 = Text(Point((p1.getX() + 4 * cell_size / 5), (p1.getY() + cell_size / 5)), cell.state_culture)
             txt3 = Text(Point((p1.getX() + cell_size / 5), (p1.getY() + 3.5 * cell_size / 5)), "x")
             txt4 = Text(Point((p1.getX() + 4 * cell_size / 5), (p1.getY() + 3.5 * cell_size / 5)), "x")
 

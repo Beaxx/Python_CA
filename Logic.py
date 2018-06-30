@@ -26,7 +26,7 @@ class CellAutomata:
 
     def run_rules(self, period, weights):
         """
-        Nutzt verschiedene Rulesets, um ein neues
+        Nutzt verschiedene Rulesets, um ein neues Zellen-Raster zu erzeugen.
         :param period: Iterationsperiode
         """
 
@@ -47,9 +47,21 @@ class CellAutomata:
                 else:
                     temp_wealth_grid[return_value[0]][return_value[1]] = self.cells[row][col]
                     temp_wealth_grid[row][col] = Cell(person=0, wealth=rnd.choice([1, 2]))
-        self.cells = temp_wealth_grid
 
 
+        # Compose temp_grid
+        for row in range(0, self.grid_height):
+            temp_grid.append([])
+            for col in range(0, self.grid_width):
+                person_indication = weights[0] * temp_wealth_grid[row][col].state_person
+                wealth_indication = weights[0] * temp_wealth_grid[row][col].state_wealth
+
+                # person_indication += weights[1] * temp_culture_grid[row][col].state_person
+                # cultur_indication += weights[1] * temp_culture_grid[row][col].state_person
+
+                temp_grid[row].append(Cell(person=int(round(person_indication/sum(weights))),
+                                           wealth=int(round(wealth_indication/sum(weights)))))
+        self.cells = temp_grid
 
     def wealth_rule_rent(self, period):
         """

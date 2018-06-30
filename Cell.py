@@ -5,8 +5,11 @@ import random as rnd
 '''Propabilities'''
 prop_person = 0.2
 prop_wealth = [1, 0.4, 0.1]
+prop_culture = [1, 0.659, 0.397, 0.225, 0.059]  # Christians, Islam, Hinduism, No religion, Buddhism
 state_person = 0
 state_wealth = 0
+state_culture = ""
+
 
 class Cell:
     def __init__(self, **kwargs):
@@ -15,19 +18,34 @@ class Cell:
         else:
             self.state_person = 0
 
-        local_rnd = rnd.uniform(0.0, 1.0)        # Wealth
-        if local_rnd < prop_wealth[2]:
+        wealth_rnd = rnd.uniform(0.0, 1.0)        # Wealth
+        if wealth_rnd < prop_wealth[2]:
             self.state_wealth = 3
-        elif local_rnd < prop_wealth[1]:
+        elif wealth_rnd < prop_wealth[1]:
             self.state_wealth = 2
-        elif local_rnd < prop_wealth[0]:
-            self.state_wealth = 1
         else:
-            self.state_wealth = 0
+            self.state_wealth = 1
+
+        culture_rnd = rnd.uniform(0.0, 1.0)        # Culture
+        if culture_rnd < prop_culture[4]:
+            self.state_culture = "B"
+        elif culture_rnd < prop_culture[3]:
+            self.state_culture = "N"
+        elif culture_rnd < prop_culture[2]:
+            self.state_culture = "H"
+        elif culture_rnd < prop_culture[1]:
+            self.state_culture = "I"
+        else:
+            self.state_culture = "C"
 
         if kwargs is not None:                    # **kwargs
             for key, value in kwargs.items():
                 if key == "person":
                     self.state_person = value
-                if key == "wealth":
+                elif key == "wealth":
                     self.state_wealth = value
+                elif key == "culture":
+                    self.state_culture = value
+
+        if self.state_person == 0:
+            self.state_culture = ""
