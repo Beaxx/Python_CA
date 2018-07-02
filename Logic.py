@@ -1,5 +1,6 @@
 from Cell import *
 import random as rnd
+from decimal import Decimal, ROUND_HALF_UP
 
 """
 CellAutomata hosts the rules and therefore the logic of the CA-Algorithm.
@@ -23,6 +24,7 @@ class CellAutomata:
             self.cells.append([])
             for col in range(0, self.grid_width):
                 self.cells[row].append(self.generate_cell())
+        print()
 
     def run_rules(self, period, weights):
         """
@@ -34,7 +36,7 @@ class CellAutomata:
         temp_grid = []
         temp_wealth_grid = [[[] for i in range(self.grid_height)] for j in range(self.grid_width)]
         temp_culture_grid = [[[] for i in range(self.grid_height)] for j in range(self.grid_width)]
-        temp_age_grid = []
+        temp_skin_grid = [[[] for i in range(self.grid_height)] for j in range(self.grid_width)]
 
         # Apply Rules
         self.wealth_rule_rent(period)
@@ -42,21 +44,29 @@ class CellAutomata:
             for col in range(0, self.grid_width):
                 # Wealth Rule
                 environment = self.add_up_environment(row, col)
-                return_value = self.wealth_rule(row, col, environment)
+                return_value_wealth = self.wealth_rule(row, col, environment)
 
-                if type(return_value) is Cell:
-                    temp_wealth_grid[row][col] = return_value
+                if type(return_value_wealth) is Cell:
+                    temp_wealth_grid[row][col] = return_value_wealth
                 else:
-                    temp_wealth_grid[return_value[0]][return_value[1]] = self.cells[row][col]
+                    temp_wealth_grid[return_value_wealth[0]][return_value_wealth[1]] = self.cells[row][col]
                     temp_wealth_grid[row][col] = Cell(person=0, wealth=rnd.choice([1, 2]))
 
-                return_value = self.culture_rule(row, col)
-                if type(return_value) is Cell:
-                    temp_culture_grid[row][col] = return_value
+                # Culture Rule
+                return_value_culture = self.culture_rule(row, col)
+                if type(return_value_culture) is Cell:
+                    temp_culture_grid[row][col] = return_value_culture
                 else:
-                    temp_culture_grid[return_value[0]][return_value[1]] = self.cells[row][col]
+                    temp_culture_grid[return_value_culture[0]][return_value_culture[1]] = self.cells[row][col]
                     temp_culture_grid[row][col] = Cell(person=0)
 
+                # Skin Rule
+                return_value_skin = self.skin_rule(row, col)
+                if type(return_value_skin) is Cell:
+                    temp_skin_grid[row][col] = return_value_skin
+                else:
+                    temp_skin_grid[return_value_skin[0]][return_value_skin[1]] = self.cells[row][col]
+                    temp_skin_grid[row][col] = Cell(person=0)
 
         # Compose temp_grid
         for row in range(0, self.grid_height):
@@ -64,20 +74,29 @@ class CellAutomata:
             for col in range(0, self.grid_width):
                 person_indication = weights[0] * temp_wealth_grid[row][col].state_person
                 person_indication += weights[1] * temp_culture_grid[row][col].state_person
+                person_indication += weights[2] * temp_skin_grid[row][col].state_person
 
                 wealth_indication = temp_wealth_grid[row][col].state_wealth
-                cultur_indication = temp_culture_grid[row][col].state_person
+                culture_indication = temp_culture_grid[row][col].state_culture
+                skin_indication = temp_culture_grid[row][col].state_skin
 
-                # TODO if-statement, culture == 0, wenn person == 0
-                temp_grid[row].append(Cell(person=int(round(person_indication/sum(weights))),
-                                           wealth=wealth_indication,
-                                           culture=cultur_indication))
+                person = int(Decimal(person_indication/sum(weights)).quantize(0, ROUND_HALF_UP))
+                if person == 0:
+                    temp_grid[row].append(Cell(person=0, wealth=wealth_indication))
+                elif person == 1 and culture_indication == "":
+                    temp_grid[row].append(Cell(person=1, wealth=wealth_indication))
+                else:
+                    temp_grid[row].append(Cell(person=1,
+                                               wealth=wealth_indication,
+                                               culture=culture_indication,
+                                               skin=skin_indication))
         self.cells = temp_grid
 
+    # Wealth Ruleset (Rent)
     def wealth_rule_rent(self, period):
         """
-        Wennn eine freie Fläche für 5 Iterationsperioden nicht besetzt wurde, wird die Miete / der Preis um 1 gesenkt.
-        Die Miete ist mindestens 0.
+        R1: Wennn eine freie Fläche für 5 Iterationsperioden nicht besetzt wurde, wird die Miete / der Preis um 1 gesenkt.
+            Die Miete ist mindestens 0.
         :param period: Iterationsperiode
         """
         if period == 0:
@@ -99,16 +118,15 @@ class CellAutomata:
     # Wealth Ruleset
     def wealth_rule(self, row, col, environment):
         """
-        - PRIO 1 -
-        R1: Wenn der durchschnittliche Wealth der Umgebung einer Person über 50% über dem eigenen Wealth liegt sucht
+        R2: Wenn der durchschnittliche Wealth der Umgebung einer Person über 50% über dem eigenen Wealth liegt sucht
             die Person in ihrer Moore Umgebung eine Freie Fläche, deren Kosten gleich oder unter ihrem wealth sind.
             Ist keine solche Fläche verfügbar, verschwindet die Zelle und hinterlässt Wohnraum mit Kosten, die ihren
             Wohlstand um 1 übersteigen.
-        R2: Wenn die Umgebung um eine Person im Durchschnitt 1.75 Stufen günstiger ist, wird die Person versuchen auf
+        R3: Wenn die Umgebung um eine Person im Durchschnitt 1.75 Stufen günstiger ist, wird die Person versuchen auf
             eine höherpreise Wohnfläche abzuwandern. Die Wahl, welche der möglichen Flächen ausgewählt wird ist zufällig
             Ist keine passende freie Fläche verfügbar, wander die Person ab.
-        R3: Wenn der Preis für eine Wohnfläche auf 0 fällt,wird sie von einer zufälligen externen Person bezogen.
-        R4: Wenn eine Wohnfläche 1.5x günstiger ist, als die Flächen in ihrer Umgebung, ändert sich ihr Preis:
+        R4: Wenn der Preis für eine Wohnfläche auf 0 fällt,wird sie von einer zufälligen externen Person bezogen.
+        R5: Wenn eine Wohnfläche 1.5x günstiger ist, als die Flächen in ihrer Umgebung, ändert sich ihr Preis:
             40% Preis fällt
             60% Preis steigt
 
@@ -172,11 +190,11 @@ class CellAutomata:
     # Culture Ruleset
     def culture_rule(self, row, col):
         """
-        - Prio 2 -
         Kulturen werden im Folgenden mit Religionen gleichgesetzt.
 
-        R4: Wenn eine Religion in der Umgebung mehrheitlich vertreten ist und diese Religion nicht der des Zentrums
+        R6: Wenn eine Religion in der Umgebung mehrheitlich vertreten ist und diese Religion nicht der des Zentrums
             einer Umgebung (Person) entspricht, versucht sich diese Person von der Religionsgruppe zu entfernen.
+        @:return Eine Objekt des typ "Zelle" oder ein Koordinatenarray
         """
 
         surrounding_coords = self.select_cells(row, col)
@@ -192,28 +210,41 @@ class CellAutomata:
         }
 
         # R4 Cell trys to avoid clusters of other religions
-        for coord in surrounding_coords:
-            if self.cells[coord[0]][coord[1]].state_culture in switcher.keys():
+        if self.cells[row][col].state_person == 1:
+            for coord in surrounding_coords:
                 religions[switcher[self.cells[coord[0]][coord[1]].state_culture]] += 1
-                if self.cells[coord[0]][coord[1]].state_culture != self.cells[row][col].state_culture:
+                if self.cells[coord[0]][coord[1]].state_person == 0:
                     moving_options.append(coord)
 
-        for i, rel in enumerate(religions[:-1]):  # Neglecting empty religion because its tied to empty cells
-            if sum(religions[:-1]) > 0:
-                if rel / sum(religions[:-1]) > 0.35 and (switcher[self.cells[row][col].state_culture] != i):
-                    if len(moving_options) == 0:
-                        return Cell(person=0)  # No moving options, religious minority leaves
+            for i, rel in enumerate(religions[:-1]):  # Neglecting empty religion because its tied to empty cells
+                if sum(religions[:-1]) > 0:
+                    if rel > 4 and rel / sum(religions[:-1]) > 0.50 and switcher[self.cells[row][col].state_culture] != i:
+                        if len(moving_options) == 0:
+                            return Cell(person=0)  # No moving options, religious minority leaves
+                        else:
+                            return rnd.choice(moving_options)
                     else:
-                        return rnd.choice(moving_options)  # Random moving choice is made
-            else:
-                return self.cells[row][col]
+                        return self.cells[row][col]
+                else:
+                    return self.cells[row][col]
+        else:
+            return self.cells[row][col]
 
-    def age_rule(self):
+    # Skin Ruleset
+    def skin_rule(self, row, col):
         """
-        - Prio 3 -
-        Rentnerviertel
-        :return:
+        Hautfarbe hat einen maßgeblichen Einfluss auf das Zugehörigkeitsgefühl einer Person zu einer Gruppe, sie ist
+        somit auch wichtiges Kriterium für Segregation. Im folgenden wird nur von den drei Hautfarben White, Black und
+        Asian ausgegangen, die gleichverteilt sind.
+
+        R7: Wie bei Religion auch versuchen sich unterschiedliche Hautfarben aus dem Weg zu gehen. Entsprechend ähnlich
+            sind sich die Regeln.
+
+        :return: Ein Objekt des Typ Zelle oder ein Koordinaten-Array
         """
+
+
+
 
     # Moore Environment - Sphere
     def select_cells(self, row, col):

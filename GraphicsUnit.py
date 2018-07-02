@@ -33,18 +33,16 @@ class GraphicsUnit:
             # Human specific Data
             txt1 = Text(Point((p1.getX() + cell_size / 5), (p1.getY() + cell_size / 5)), cell.state_wealth)
             txt2 = Text(Point((p1.getX() + 4 * cell_size / 5), (p1.getY() + cell_size / 5)), cell.state_culture)
-            txt3 = Text(Point((p1.getX() + cell_size / 5), (p1.getY() + 3.5 * cell_size / 5)), "x")
-            txt4 = Text(Point((p1.getX() + 4 * cell_size / 5), (p1.getY() + 3.5 * cell_size / 5)), "x")
+            txt3 = Text(Point((p1.getX() + cell_size / 2), (p1.getY() + 3.5 * cell_size / 5)), cell.state_skin)
 
             # Wealth on uninhabited cells is cost
-            txt_list = [txt1, txt2, txt3, txt4]
+            txt_list = [txt1, txt2, txt3]
             for i in txt_list:
                 i.setSize(int(round(cell_size / 3.25)))
 
-            txt1.setTextColor("orange")
-            txt2.setTextColor("yellow")
-            txt3.setTextColor("red")
-            txt4.setTextColor("green")
+            txt1.setTextColor("red")
+            txt2.setTextColor("orange")
+            txt3.setTextColor("white")
 
         else:
             square_empty = Rectangle(p1, p2)
