@@ -1,6 +1,7 @@
 from graphics import *
 from Logic import CellAutomata as Ca
 
+
 class GraphicsUnit:
 
     @staticmethod
@@ -65,8 +66,40 @@ class GraphicsUnit:
         return cell_graphic
 
     @staticmethod
-    def highlight_clusters(ca, window, drawn_elements, cells):
+    def highlight_clusters(ca, drawn_elements, cells, window, cell_size):
+
+        two_dimension_drawn_elements = [drawn_elements[i:i+ca.grid_width] for i in range(0, len(drawn_elements), ca.grid_width)]
+
         for row in range(0, len(cells)):
             for col in range(0, len(cells[row])):
                 surrounding_coords = Ca.select_cells(ca, row, col)
 
+                wealth_indication = 0.0
+                culture_indication = 0.0
+                skin_indication = 0.0
+                persons = 0
+
+                for coord in surrounding_coords:
+                    if cells[coord[0]][coord[1]].state_person == 1:
+                        persons += 1
+
+                for coord in surrounding_coords:
+                    if cells[coord[0]][coord[1]].state_person == 1 and \
+                            cells[coord[0]][coord[1]].state_wealth == cells[row][col].state_wealth:
+                        wealth_indication += 1/persons
+                    if cells[coord[0]][coord[1]].state_person == 1 and \
+                            cells[coord[0]][coord[1]].state_culture == cells[row][col].state_culture:
+                        culture_indication += 1/persons
+                    if cells[coord[0]][coord[1]].state_person == 1 and \
+                            cells[coord[0]][coord[1]].state_skin == cells[row][col].state_skin:
+                        skin_indication += 1/persons
+
+                    fill_percent = int(round((abs(1-((wealth_indication+culture_indication+skin_indication)/3)))*255))
+
+                    if persons <= 2:
+                        two_dimension_drawn_elements[row][col][0].setFill(color_rgb(220, 220, 220))
+                    else:
+                        two_dimension_drawn_elements[row][col][0].setFill(
+                            color_rgb(fill_percent, fill_percent, fill_percent))
+
+        GraphicsUnit.draw_cell(window, coord[1] * cell_size, coord[0] * cell_size, cell_size, cells[coord[0]][coord[1]])
