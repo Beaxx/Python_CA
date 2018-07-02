@@ -26,7 +26,8 @@ class CellAutomata:
 
     def run_rules(self, period, weights):
         """
-        Nutzt verschiedene Rulesets, um ein neues Zellen-Raster zu erzeugen.
+        Ruft verschiedene Rulesets auf, die verschiedene temporäre Grids erzeugen. Diese werden mit dem @weights Faktor
+        gewichtet und dann in einem neuen Zellen-Raster zusammengefasst.
         :param period: Iterationsperiode
         """
 
@@ -35,10 +36,11 @@ class CellAutomata:
         temp_culture_grid = [[[] for i in range(self.grid_height)] for j in range(self.grid_width)]
         temp_age_grid = []
 
-        # Wealth Grid
+        # Apply Rules
         self.wealth_rule_rent(period)
         for row in range(0, self.grid_height):
             for col in range(0, self.grid_width):
+                # Wealth Rule
                 environment = self.add_up_environment(row, col)
                 return_value = self.wealth_rule(row, col, environment)
 
@@ -48,19 +50,28 @@ class CellAutomata:
                     temp_wealth_grid[return_value[0]][return_value[1]] = self.cells[row][col]
                     temp_wealth_grid[row][col] = Cell(person=0, wealth=rnd.choice([1, 2]))
 
+                return_value = self.culture_rule(row, col)
+                if type(return_value) is Cell:
+                    temp_culture_grid[row][col] = return_value
+                else:
+                    temp_culture_grid[return_value[0]][return_value[1]] = self.cells[row][col]
+                    temp_culture_grid[row][col] = Cell(person=0)
+
 
         # Compose temp_grid
         for row in range(0, self.grid_height):
             temp_grid.append([])
             for col in range(0, self.grid_width):
                 person_indication = weights[0] * temp_wealth_grid[row][col].state_person
-                wealth_indication = weights[0] * temp_wealth_grid[row][col].state_wealth
+                person_indication += weights[1] * temp_culture_grid[row][col].state_person
 
-                # person_indication += weights[1] * temp_culture_grid[row][col].state_person
-                # cultur_indication += weights[1] * temp_culture_grid[row][col].state_person
+                wealth_indication = temp_wealth_grid[row][col].state_wealth
+                cultur_indication = temp_culture_grid[row][col].state_person
 
+                # TODO if-statement, culture == 0, wenn person == 0
                 temp_grid[row].append(Cell(person=int(round(person_indication/sum(weights))),
-                                           wealth=int(round(wealth_indication/sum(weights)))))
+                                           wealth=wealth_indication,
+                                           culture=cultur_indication))
         self.cells = temp_grid
 
     def wealth_rule_rent(self, period):
@@ -159,14 +170,43 @@ class CellAutomata:
             return self.cells[row][col]  # Catch-All, if no rule applys cell stais unchanged
 
     # Culture Ruleset
-    def culture_rule(self):
+    def culture_rule(self, row, col):
         """
         - Prio 2 -
-        > Religion und Kultur zu nah beieinander<
-        Zellen vermeiden den direkten Kontakt zu anderen Kulturen
-            (Westlich, Slawisch, Islamisch, Sinisch, Afrikanisch, Hinduistisch)
-        :return:
+        Kulturen werden im Folgenden mit Religionen gleichgesetzt.
+
+        R4: Wenn eine Religion in der Umgebung mehrheitlich vertreten ist und diese Religion nicht der des Zentrums
+            einer Umgebung (Person) entspricht, versucht sich diese Person von der Religionsgruppe zu entfernen.
         """
+
+        surrounding_coords = self.select_cells(row, col)
+        moving_options = []
+        religions = [0, 0, 0, 0, 0, 0]
+        switcher = {
+            "C": 0,
+            "I": 1,
+            "H": 2,
+            "N": 3,
+            "B": 4,
+            "": 5,
+        }
+
+        # R4 Cell trys to avoid clusters of other religions
+        for coord in surrounding_coords:
+            if self.cells[coord[0]][coord[1]].state_culture in switcher.keys():
+                religions[switcher[self.cells[coord[0]][coord[1]].state_culture]] += 1
+                if self.cells[coord[0]][coord[1]].state_culture != self.cells[row][col].state_culture:
+                    moving_options.append(coord)
+
+        for i, rel in enumerate(religions[:-1]):  # Neglecting empty religion because its tied to empty cells
+            if sum(religions[:-1]) > 0:
+                if rel / sum(religions[:-1]) > 0.35 and (switcher[self.cells[row][col].state_culture] != i):
+                    if len(moving_options) == 0:
+                        return Cell(person=0)  # No moving options, religious minority leaves
+                    else:
+                        return rnd.choice(moving_options)  # Random moving choice is made
+            else:
+                return self.cells[row][col]
 
     def age_rule(self):
         """
