@@ -1,5 +1,3 @@
-# person {0,1} with 0 = free Space, 1 = person
-# wealth {0,1,2,3} with 0 = free Space, 1 = poor, 2 = medium, 3 = rich
 import random as rnd
 
 '''Propabilities'''

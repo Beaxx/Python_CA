@@ -6,6 +6,7 @@ from decimal import Decimal, ROUND_HALF_UP
 CellAutomata hosts the rules and therefore the logic of the CA-Algorithm.
 """
 
+
 class CellAutomata:
     def __init__(self, window_width, window_height, cell_size):
         self.grid_width = int(window_width / cell_size)
@@ -31,6 +32,7 @@ class CellAutomata:
         Ruft verschiedene Rulesets auf, die verschiedene temporäre Grids erzeugen. Diese werden mit dem @weights Faktor
         gewichtet und dann in einem neuen Zellen-Raster zusammengefasst.
         :param period: Iterationsperiode
+        :param weights: Gewichtung der einzelnen Regeln
         """
 
         temp_grid = []
@@ -43,8 +45,9 @@ class CellAutomata:
         for row in range(0, self.grid_height):
             for col in range(0, self.grid_width):
                 # Wealth Rule
+                surrounding_coords = self.select_cells(row, col)
                 environment = self.add_up_environment(row, col)
-                return_value_wealth = self.wealth_rule(row, col, environment)
+                return_value_wealth = self.wealth_rule(row, col, environment, surrounding_coords)
 
                 if type(return_value_wealth) is Cell:
                     temp_wealth_grid[row][col] = return_value_wealth
@@ -53,7 +56,7 @@ class CellAutomata:
                     temp_wealth_grid[row][col] = Cell(person=0, wealth=rnd.choice([1, 2]))
 
                 # Culture Rule
-                return_value_culture = self.culture_rule(row, col)
+                return_value_culture = self.culture_rule(row, col, surrounding_coords)
                 if type(return_value_culture) is Cell:
                     temp_culture_grid[row][col] = return_value_culture
                 else:
@@ -61,7 +64,7 @@ class CellAutomata:
                     temp_culture_grid[row][col] = Cell(person=0)
 
                 # Skin Rule
-                return_value_skin = self.skin_rule(row, col)
+                return_value_skin = self.skin_rule(row, col, surrounding_coords)
                 if type(return_value_skin) is Cell:
                     temp_skin_grid[row][col] = return_value_skin
                 else:
@@ -72,6 +75,7 @@ class CellAutomata:
         for row in range(0, self.grid_height):
             temp_grid.append([])
             for col in range(0, self.grid_width):
+
                 person_indication = weights[0] * temp_wealth_grid[row][col].state_person
                 person_indication += weights[1] * temp_culture_grid[row][col].state_person
                 person_indication += weights[2] * temp_skin_grid[row][col].state_person
@@ -116,7 +120,7 @@ class CellAutomata:
             self.rent = temp_rent
 
     # Wealth Ruleset
-    def wealth_rule(self, row, col, environment):
+    def wealth_rule(self, row, col, environment, surrounding_coords):
         """
         R2: Wenn der durchschnittliche Wealth der Umgebung einer Person über 50% über dem eigenen Wealth liegt sucht
             die Person in ihrer Moore Umgebung eine Freie Fläche, deren Kosten gleich oder unter ihrem wealth sind.
@@ -138,7 +142,6 @@ class CellAutomata:
         :param environment:
         """
 
-        surrounding_coords = self.select_cells(row, col)
         moving_options = []
         # R1 Environment persons are 1.5x richer then Cell Person--> Person is forced to move and rent increases
         if self.cells[row][col].state_person == 1 and (self.cells[row][col].state_wealth * 1.5 <= environment[3]):
@@ -188,7 +191,7 @@ class CellAutomata:
             return self.cells[row][col]  # Catch-All, if no rule applys cell stais unchanged
 
     # Culture Ruleset
-    def culture_rule(self, row, col):
+    def culture_rule(self, row, col, surrounding_coords):
         """
         Kulturen werden im Folgenden mit Religionen gleichgesetzt.
 
@@ -196,8 +199,6 @@ class CellAutomata:
             einer Umgebung (Person) entspricht, versucht sich diese Person von der Religionsgruppe zu entfernen.
         @:return Eine Objekt des typ "Zelle" oder ein Koordinatenarray
         """
-
-        surrounding_coords = self.select_cells(row, col)
         moving_options = []
         religions = [0, 0, 0, 0, 0, 0]
         switcher = {
@@ -209,7 +210,7 @@ class CellAutomata:
             "": 5,
         }
 
-        # R4 Cell trys to avoid clusters of other religions
+        # R6 Cell trys to avoid clusters of other religions
         if self.cells[row][col].state_person == 1:
             for coord in surrounding_coords:
                 religions[switcher[self.cells[coord[0]][coord[1]].state_culture]] += 1
@@ -231,7 +232,7 @@ class CellAutomata:
             return self.cells[row][col]
 
     # Skin Ruleset
-    def skin_rule(self, row, col):
+    def skin_rule(self, row, col, surrounding_coords):
         """
         Hautfarbe hat einen maßgeblichen Einfluss auf das Zugehörigkeitsgefühl einer Person zu einer Gruppe, sie ist
         somit auch wichtiges Kriterium für Segregation. Im folgenden wird nur von den drei Hautfarben White, Black und
@@ -243,8 +244,35 @@ class CellAutomata:
         :return: Ein Objekt des Typ Zelle oder ein Koordinaten-Array
         """
 
+        moving_options = []
+        skin = [0, 0, 0, 0]
+        switcher = {
+            "W": 0,
+            "B": 1,
+            "A": 2,
+            "": 3,
+        }
 
+        # R7 Cell trys to avoid clusters of other skin colores
+        if self.cells[row][col].state_person == 1:
+            for coord in surrounding_coords:
+                skin[switcher[self.cells[coord[0]][coord[1]].state_skin]] += 1
+                if self.cells[coord[0]][coord[1]].state_person == 0:
+                    moving_options.append(coord)
 
+            for i, s in enumerate(skin[:-1]):  # Neglecting empty skin because its tied to empty cells
+                if sum(skin[:-1]) > 0:
+                    if s > 4 and s / sum(skin[:-1]) > 0.50 and switcher[self.cells[row][col].state_skin] != i:
+                        if len(moving_options) == 0:
+                            return Cell(person=0)  # No moving options, skin minority leaves
+                        else:
+                            return rnd.choice(moving_options)
+                    else:
+                        return self.cells[row][col]
+                else:
+                    return self.cells[row][col]
+        else:
+            return self.cells[row][col]
 
     # Moore Environment - Sphere
     def select_cells(self, row, col):

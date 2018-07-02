@@ -1,5 +1,5 @@
 from graphics import *
-
+from Logic import CellAutomata as Ca
 
 class GraphicsUnit:
 
@@ -63,3 +63,10 @@ class GraphicsUnit:
             cell_graphic.append(i)
 
         return cell_graphic
+
+    @staticmethod
+    def highlight_clusters(ca, window, drawn_elements, cells):
+        for row in range(0, len(cells)):
+            for col in range(0, len(cells[row])):
+                surrounding_coords = Ca.select_cells(ca, row, col)
+
