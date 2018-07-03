@@ -6,6 +6,10 @@ class GraphicsUnit:
 
     @staticmethod
     def draw_grid(window, cells, cell_size):
+        """
+        Zeichnet das Raster in das geöffnete Fenster.
+        :return Eindimensionales Jagged-Array mit allen gezeichneten Elementen
+        """
         draw_on_screen = []
         for row in range(0, len(cells)):
             for col in range(0, len(cells[0])):
@@ -21,6 +25,10 @@ class GraphicsUnit:
 
     @staticmethod
     def draw_cell(window, x_up_left, y_up_left, cell_size, cell):
+        """
+        Zeichnet erstellt die grafische Repräsentation einer Zelle in Abhängigkeit davon, ob state_person == 1 oder ==0
+        :return grafische Darstellung einer Zelle
+        """
         p1 = Point(x_up_left, y_up_left)
         p2 = Point(x_up_left + cell_size, y_up_left + cell_size)
 
@@ -67,8 +75,18 @@ class GraphicsUnit:
 
     @staticmethod
     def highlight_clusters(ca, drawn_elements, cells, window, cell_size):
+        """
+        Die Person-Zellen des Rasters werden entsprechend ihrer Ähnlichkeit eingefärbt.
+        100%-ige Ähnlichkeit führt zu schwarzer Einfärbung.
 
-        two_dimension_drawn_elements = [drawn_elements[i:i+ca.grid_width] for i in range(0, len(drawn_elements), ca.grid_width)]
+        :param ca: Instanz des Zellularautomaten
+        :param drawn_elements: Array mit den zuletzte gezeichneten Elementen
+        :param cells: 2-Dimensionales Array aller gezeichneten Zellen
+        :param window: Instanz des Darstellungsfensters
+        :param cell_size: Größe einer Zelle in Pixeln
+        """
+        two_dimension_drawn_elements = [drawn_elements[i:i+ca.grid_width] for i in range(0, len(drawn_elements),
+                                                                                         ca.grid_width)]
 
         for row in range(0, len(cells)):
             for col in range(0, len(cells[row])):

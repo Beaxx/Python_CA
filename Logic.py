@@ -2,12 +2,8 @@ from Cell import *
 import random as rnd
 from decimal import Decimal, ROUND_HALF_UP
 
-"""
-CellAutomata hosts the rules and therefore the logic of the CA-Algorithm.
-"""
-
-
 class CellAutomata:
+
     def __init__(self, window_width, window_height, cell_size):
         self.grid_width = int(window_width / cell_size)
         self.grid_height = int(window_height / cell_size)
@@ -29,7 +25,7 @@ class CellAutomata:
 
     def run_rules(self, period, weights):
         """
-        Ruft verschiedene Rulesets auf, die verschiedene temporäre Grids erzeugen. Diese werden mit dem @weights Faktor
+        Ruft verschiedene Rulesets auf, die verschiedene temporäre Grids erzeugen. Diese werden mit dem weights Faktor
         gewichtet und dann in einem neuen Zellen-Raster zusammengefasst.
         :param period: Iterationsperiode
         :param weights: Gewichtung der einzelnen Regeln
@@ -44,9 +40,10 @@ class CellAutomata:
         self.wealth_rule_rent(period)
         for row in range(0, self.grid_height):
             for col in range(0, self.grid_width):
-                # Wealth Rule
                 surrounding_coords = self.select_cells(row, col)
                 environment = self.add_up_environment(row, col)
+
+                # Wealth Rule
                 return_value_wealth = self.wealth_rule(row, col, environment, surrounding_coords)
 
                 if type(return_value_wealth) is Cell:
@@ -139,7 +136,8 @@ class CellAutomata:
             um 1.75 oder mehr Stufen niedriger ist, als
         :param row: Zeilenindex
         :param col: Spaltenindex
-        :param environment:
+        :param environment: Wirtschaftlicher Zustand der umgebenden Zellen
+        :param surrounding_coords: Die Koordinaten der umgebenden Zellen
         """
 
         moving_options = []
@@ -276,6 +274,14 @@ class CellAutomata:
 
     # Moore Environment - Sphere
     def select_cells(self, row, col):
+        """
+        Das Raster des Zellularautomaten ist eine Kugel, entsprechend führen Grenzübertretungen nach
+        oben und nach unten sowie in den Ecken zum Einbezug von Zellen der gegnüberliegenden Seite.
+
+        :param row: Zeile
+        :param col: Spalte
+        :return: Eindimensionales array mit 8 Elementen: den Koordinaten der umliegenden Zellen
+        """
 
         # Normal
         if (0 < row < self.grid_height-1) and (0 < col < self.grid_width-1):
